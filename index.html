@@ -1,11 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="걷기&일본어">
+<meta name="apple-mobile-web-app-title" content="걷기&amp;일본어">
+<title>걷기 &amp; 일본어 챌린지</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1:wght@400;500;700;900&display=swap" rel="stylesheet">
-<title>걷기 &amp; 일본어 챌린지</title>
 <style>
   :root {
     --bg: #F5F3F2;
@@ -338,6 +343,8 @@
   }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
 </style>
+</head>
+<body>
   <div class="page">
     <header class="hero" id="hero">
       <div class="hero-stars" aria-hidden="true">
@@ -450,18 +457,7 @@
       }
     } catch (e) {}
 
-    // capture the pristine template BEFORE any dynamic render touches the DOM
-    var PRISTINE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-    function buildFullHtml(d) {
-      var json = JSON.stringify(d);
-      return PRISTINE_HTML.replace(
-        /(<script id="app-data"[^>]*>)[\s\S]*?(<\/script>)/,
-        function (m, a, b) { return a + json + b; }
-      );
-    }
-
-    // ---------- capability ----------
+    // ---------- capability (not available on plain hosting; falls back to localStorage) ----------
     var artifactNS = null;
     (function initCapability() {
       if (window.claude && typeof window.claude.use === 'function') {
@@ -474,11 +470,7 @@
     }
 
     function persist() {
-      if (!artifactNS) return;
-      try {
-        var html = buildFullHtml(data);
-        artifactNS.publish(html).catch(function () {});
-      } catch (e) {}
+      saveLocal();
     }
 
     // ---------- state helpers ----------
@@ -821,3 +813,5 @@
     renderAll();
   })();
   </script>
+</body>
+</html>

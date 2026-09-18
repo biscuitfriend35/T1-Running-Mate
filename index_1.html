@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="걷기&amp;일본어">
+<title>걷기 &amp; 일본어 챌린지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F3F2;
+    --panel: #FFFFFF;
+    --panel2: #ECE8E7;
+    --text: #161616;
+    --text-dim: #6B6664;
+    --brand: #C21B1B;
+    --brand-rgb: 194,27,27;
+    --walk: #D9502E;
+    --jp: #A31545;
+    --border: #D8D3D1;
+    --focus: #3B6FD9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0A0A0B;
+      --panel: #161616;
+      --panel2: #202020;
+      --text: #F5F1F0;
+      --text-dim: #A39E9C;
+      --brand: #E2231A;
+      --brand-rgb: 226,35,26;
+      --walk: #FF7A4A;
+      --jp: #E23A73;
+      --border: #2E2C2C;
+      --focus: #7CA8FF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0A0A0B;
+    --panel: #161616;
+    --panel2: #202020;
+    --text: #F5F1F0;
+    --text-dim: #A39E9C;
+    --brand: #E2231A;
+    --brand-rgb: 226,35,26;
+    --walk: #FF7A4A;
+    --jp: #E23A73;
+    --border: #2E2C2C;
+    --focus: #7CA8FF;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Gothic A1', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .page {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 40px;
+  }
+
+  /* ---------- Hero (fixed brand banner: T1 red on black) ---------- */
+  .hero {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(var(--brand-rgb), 0.55) 0%, rgba(var(--brand-rgb), 0) 60%),
+      #0B0B0C;
+    color: #F5F1F0;
+    border-top: 4px solid var(--brand);
+    padding: 30px 20px 26px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -60%;
+    left: 50%;
+    width: 260px;
+    height: 260px;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, var(--brand) 0%, transparent 70%);
+    opacity: 0.32;
+    pointer-events: none;
+  }
+  .hero-stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .hero-stars svg { width: 100%; height: 100%; display: block; }
+  .hero-stars circle { fill: #FFFFFF; }
+  .const { opacity: 0; }
+  @keyframes const-twinkle {
+    0%, 100% { opacity: 0; }
+    20% { opacity: 0.85; }
+    50% { opacity: 0.85; }
+    75% { opacity: 0; }
+  }
+  .const.c1 { animation: const-twinkle 18s ease-in-out infinite; animation-delay: 0s; }
+  .const.c2 { animation: const-twinkle 18s ease-in-out infinite; animation-delay: 3.6s; }
+  .const.c3 { animation: const-twinkle 18s ease-in-out infinite; animation-delay: 7.2s; }
+  .const.c4 { animation: const-twinkle 18s ease-in-out infinite; animation-delay: 10.8s; }
+  .const.c5 { animation: const-twinkle 18s ease-in-out infinite; animation-delay: 14.4s; }
+  .hero-content { position: relative; }
+  .hero-count {
+    font-family: 'Do Hyeon', 'Apple SD Gothic Neo', sans-serif;
+    font-size: clamp(2.8rem, 17vw, 4.2rem);
+    line-height: 1;
+    margin: 0;
+    letter-spacing: 0.01em;
+    color: #FFFFFF;
+  }
+  .hero-sub {
+    margin: 6px 0 20px;
+    color: #C9C5C3;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: opacity 0.26s ease;
+  }
+  .hero-sub.fade { opacity: 0; }
+  .timeline { padding: 0 4px; }
+  .timeline-track {
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    background: #262626;
+    overflow: visible;
+  }
+  .timeline-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #7A0F0F, var(--brand));
+  }
+  .timeline-dot {
+    position: absolute;
+    top: -4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--brand);
+    border: 2px solid #0B0B0C;
+    transform: translateX(-7px);
+  }
+  .timeline-labels {
+    position: relative;
+    height: 18px;
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: #C9C5C3;
+  }
+  .timeline-labels span { position: absolute; white-space: nowrap; }
+  .tl-start { left: 0; }
+  .tl-end { right: 0; }
+
+  .hero-stats {
+    margin: 18px 0 0;
+    font-size: 0.85rem;
+    color: #C9C5C3;
+  }
+  .hero-stats b { color: #FFFFFF; font-weight: 700; }
+  .hero-streak {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 14px;
+    border-radius: 100px;
+    background: #1C1C1C;
+    color: var(--brand);
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+
+  /* ---------- Weeks ---------- */
+  .weeks { padding: 6px 16px 0; }
+  .week {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+  }
+  .week:last-child { border-bottom: none; }
+  .week-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .week-range {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .week-status {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .day-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 0 8px;
+    border-radius: 10px;
+  }
+  .day-card.is-today {
+    background: var(--panel2);
+    box-shadow: inset 0 0 0 1.5px var(--brand);
+  }
+  .day-date {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .day-date b { display: block; font-size: 0.95rem; color: var(--text); font-weight: 700; }
+  .travel-line {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: auto;
+    row-gap: 5px;
+    margin-top: 8px;
+  }
+  .tl-seg { height: 1px; background: transparent; grid-row: 1; }
+  .tl-seg.on { background: var(--brand); }
+  .travel-caption {
+    grid-row: 2;
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--brand);
+    white-space: nowrap;
+  }
+  .chip {
+    min-width: 42px;
+    height: 27px;
+    padding: 0 7px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.66rem;
+    font-weight: 700;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .chip.walk { border-color: var(--walk); color: var(--walk); }
+  .chip.jp { border-color: var(--jp); color: var(--jp); }
+  .chip.optional {
+    border-style: dashed;
+  }
+  .chip:disabled { opacity: 0.28; cursor: default; }
+  .chip.walk.done { background: var(--walk); border-color: var(--walk); color: #fff; }
+  .chip.jp.done { background: var(--jp); border-color: var(--jp); color: #fff; }
+  .chip:not(:disabled):active { transform: scale(0.88); }
+  .chip.pop { animation: pop 0.32s ease; }
+  @keyframes pop {
+    0% { transform: scale(1) rotate(0deg); }
+    45% { transform: scale(1.25) rotate(-8deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .chip-spacer { min-width: 42px; height: 27px; }
+  .chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .week-summary {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 0.78rem;
+    padding: 4px 12px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .badge.ok.walk { background: var(--walk); border-color: var(--walk); color: #fff; }
+  .badge.ok.jp { background: var(--jp); border-color: var(--jp); color: #fff; }
+
+  .note {
+    padding: 22px 20px 0;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  /* ---------- Celebration ---------- */
+  .confetti-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 40;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -20px;
+    width: 7px;
+    height: 12px;
+    border-radius: 2px;
+    animation: confetti-fall 1.2s ease-in forwards;
+  }
+  @keyframes confetti-fall {
+    0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(105vh) translateX(var(--drift, 20px)) rotate(540deg); opacity: 0.9; }
+  }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translate(-50%, 20px);
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 12px 20px;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    z-index: 41;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero" id="hero">
+      <div class="hero-stars" aria-hidden="true">
+        <svg viewBox="0 0 440 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="starGlow" x="-500%" y="-500%" width="1100%" height="1100%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="3.6" result="alphaBlur"/>
+              <feFlood flood-color="#FF2A1A" flood-opacity="1" result="glowColor"/>
+              <feComposite in="glowColor" in2="alphaBlur" operator="in" result="redGlow"/>
+              <feMerge>
+                <feMergeNode in="redGlow"/>
+                <feMergeNode in="redGlow"/>
+                <feMergeNode in="redGlow"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <g class="const c1">
+            <polyline points="44,61 57,43 70,38 83,47 98,56" fill="none" stroke="#F5F1F0" stroke-width="0.5" stroke-opacity="0.55"/>
+            <line x1="57" y1="43" x2="62" y2="29" stroke="#F5F1F0" stroke-width="0.5" stroke-opacity="0.55"/>
+            <circle cx="44" cy="61" r="2.3" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="57" cy="43" r="2.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="70" cy="38" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="83" cy="47" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="98" cy="56" r="2.3" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="62" cy="29" r="1.8" fill="#FFFFFF" filter="url(#starGlow)"/>
+          </g>
+          <g class="const c2">
+            <polyline points="365,29 357,43 370,61" fill="none" stroke="#F5F1F0" stroke-width="0.5" stroke-opacity="0.55"/>
+            <line x1="357" y1="43" x2="383" y2="56" stroke="#F5F1F0" stroke-width="0.5" stroke-opacity="0.55"/>
+            <circle cx="365" cy="29" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="357" cy="43" r="2.4" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="370" cy="61" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="383" cy="56" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+          </g>
+          <g class="const c3">
+            <polyline points="187,142 223,147 249,157 254,175 228,175 223,188 192,188 182,165 187,142" fill="none" stroke="#F5F1F0" stroke-width="0.5" stroke-opacity="0.55"/>
+            <circle cx="187" cy="142" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="223" cy="147" r="2.3" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="249" cy="157" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="254" cy="175" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="228" cy="175" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="223" cy="188" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="192" cy="188" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="182" cy="165" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+          </g>
+          <g class="const c4">
+            <polyline points="70,123 44,150 70,163 98,150 70,123" fill="none" stroke="#F5F1F0" stroke-width="0.5" stroke-opacity="0.55"/>
+            <circle cx="70" cy="123" r="2.3" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="44" cy="150" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="70" cy="163" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="98" cy="150" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+          </g>
+          <g class="const c5">
+            <polyline points="337,128 373,133 399,143 404,161 378,161 373,174 342,174 332,151 337,128" fill="none" stroke="#F5F1F0" stroke-width="0.5" stroke-opacity="0.55"/>
+            <circle cx="337" cy="128" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="373" cy="133" r="2.3" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="399" cy="143" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="404" cy="161" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="378" cy="161" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="373" cy="174" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="342" cy="174" r="1.9" fill="#FFFFFF" filter="url(#starGlow)"/>
+            <circle cx="332" cy="151" r="2.2" fill="#FFFFFF" filter="url(#starGlow)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="hero-content" id="hero-content"></div>
+    </header>
+    <main class="weeks" id="weeks"></main>
+    <p class="note">탭하면 자동으로 저장돼요. 홈 화면에 추가해두면 앱처럼 빠르게 열 수 있어요.</p>
+  </div>
+
+  <script id="app-data" type="application/json">{"meta":{"start":"2026-09-18","end":"2026-11-15","excluded":["2026-10-16","2026-10-17","2026-10-18","2026-10-19"]},"updatedAt":1789710692095,"days":{"2026-09-18":{"walk":true}}}</script>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var LS_KEY = 'walk-jp-habit-data-v2';
+    var DOW = ['월', '화', '수', '목', '금', '토', '일'];
+    var JP_DOW_INDEXES = [1, 3, 5, 6]; // 화(1), 목(3), 토(5), 일(6) — 0=월
+
+    // ---------- date helpers ----------
+    function fmt(d) {
+      var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+    function parseDate(s) {
+      var parts = s.split('-').map(Number);
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    function startOfDay(d) { var r = new Date(d); r.setHours(0, 0, 0, 0); return r; }
+    function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+    function mondayOf(d) {
+      var day = (d.getDay() + 6) % 7;
+      return startOfDay(addDays(d, -day));
+    }
+    function shortLabel(d) { return (d.getMonth() + 1) + '/' + d.getDate(); }
+
+    // ---------- load data ----------
+    var raw = document.getElementById('app-data').textContent;
+    var data = JSON.parse(raw);
+    try {
+      var localRaw = localStorage.getItem(LS_KEY);
+      if (localRaw) {
+        var local = JSON.parse(localRaw);
+        if (local && local.meta && local.meta.start === data.meta.start && local.meta.end === data.meta.end && (local.updatedAt || 0) > (data.updatedAt || 0)) {
+          data = local;
+        }
+      }
+    } catch (e) {}
+
+    // ---------- capability (not available on plain hosting; falls back to localStorage) ----------
+    var artifactNS = null;
+    (function initCapability() {
+      if (window.claude && typeof window.claude.use === 'function') {
+        window.claude.use('artifact').then(function (ns) { artifactNS = ns; }).catch(function () { artifactNS = null; });
+      }
+    })();
+
+    function saveLocal() {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch (e) {}
+    }
+
+    function persist() {
+      saveLocal();
+    }
+
+    // ---------- state helpers ----------
+    var START = parseDate(data.meta.start);
+    var END = parseDate(data.meta.end);
+    var TODAY = startOfDay(new Date());
+
+    function inRange(d) { return d >= START && d <= END; }
+    function isFuture(d) { return d > TODAY; }
+    var EXCLUDED = (data.meta.excluded || []).slice();
+    function isExcludedDate(dateStr) { return EXCLUDED.indexOf(dateStr) !== -1; }
+
+    function dayFlags(dateStr) {
+      var v = data.days[dateStr] || {};
+      return { walk: !!v.walk, jp: !!v.jp };
+    }
+
+    function weekInfoForDate(dateStr) {
+      var d = parseDate(dateStr);
+      var monday = mondayOf(d);
+      var weekDays = [];
+      for (var i = 0; i < 7; i++) weekDays.push(addDays(monday, i));
+      var activeDays = weekDays.filter(inRange);
+      var targetDays = activeDays.filter(function (x) { return !isExcludedDate(fmt(x)); });
+      var walkTarget = Math.min(5, targetDays.length);
+      var jpEligible = targetDays.filter(function (x) { return JP_DOW_INDEXES.indexOf((x.getDay() + 6) % 7) !== -1; }).length;
+      var jpTarget = Math.min(3, jpEligible);
+      var walkCount = 0, jpCount = 0;
+      activeDays.forEach(function (x) {
+        var f = dayFlags(fmt(x));
+        if (f.walk) walkCount++;
+        if (f.jp) jpCount++;
+      });
+      return { weekDays: weekDays, activeDays: activeDays, walkTarget: walkTarget, jpTarget: jpTarget, walkCount: walkCount, jpCount: jpCount };
+    }
+
+    function computeWalkStreak() {
+      var d = new Date(TODAY);
+      if (!dayFlags(fmt(d)).walk && !isExcludedDate(fmt(d))) d = addDays(d, -1);
+      var streak = 0;
+      while (d >= START) {
+        var ds = fmt(d);
+        if (dayFlags(ds).walk) {
+          streak++;
+        } else if (!isExcludedDate(ds)) {
+          break;
+        }
+        d = addDays(d, -1);
+      }
+      return streak;
+    }
+
+    function toggleHabit(dateStr, habit) {
+      var before = weekInfoForDate(dateStr);
+      if (!data.days[dateStr]) data.days[dateStr] = {};
+      data.days[dateStr][habit] = !data.days[dateStr][habit];
+      data.updatedAt = Date.now();
+      saveLocal();
+      renderAll();
+      persist();
+
+      var btn = document.querySelector('.chip[data-date="' + dateStr + '"][data-habit="' + habit + '"]');
+      if (btn) {
+        btn.classList.remove('pop');
+        void btn.offsetWidth;
+        btn.classList.add('pop');
+      }
+
+      var after = weekInfoForDate(dateStr);
+      if (habit === 'walk' && after.walkTarget > 0 && after.walkCount === after.walkTarget && before.walkCount < before.walkTarget) {
+        celebrate('이번 주 걷기 목표 달성! 🚶🔥');
+      } else if (habit === 'jp' && after.jpTarget > 0 && after.jpCount === after.jpTarget && before.jpCount < before.jpTarget) {
+        celebrate('이번 주 일본어 목표 달성! 🎉');
+      }
+    }
+
+    // ---------- celebration ----------
+    function getVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function celebrate(message) {
+      var colors = [getVar('--brand'), getVar('--walk'), getVar('--jp'), '#FF5FA8', '#5FA8FF'];
+      var layer = document.createElement('div');
+      layer.className = 'confetti-layer';
+      for (var i = 0; i < 22; i++) {
+        var p = document.createElement('span');
+        p.className = 'confetti-piece';
+        p.style.left = (Math.random() * 100) + '%';
+        p.style.background = colors[i % colors.length];
+        p.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+        p.style.animationDelay = (Math.random() * 0.25) + 's';
+        layer.appendChild(p);
+      }
+      document.body.appendChild(layer);
+      setTimeout(function () { layer.remove(); }, 1500);
+
+      var toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      requestAnimationFrame(function () { toast.classList.add('show'); });
+      setTimeout(function () {
+        toast.classList.remove('show');
+        setTimeout(function () { toast.remove(); }, 300);
+      }, 2200);
+    }
+
+    // ---------- hero phrase rotation ----------
+    var HERO_PHRASES = [
+      { text: 'Together as 1', emoji: '🤝' },
+      { text: 'T1 win', emoji: '🏆' },
+      { text: '협곡의 주인 오너', emoji: '🌳' },
+      { text: '불사대마왕 페이커', emoji: '👹' },
+      { text: '돌거북군주 도란', emoji: '🐢' },
+      { text: '역천괴 케리아', emoji: '✨' },
+      { text: '최강 티원 원딜 페이즈', emoji: '🏹' },
+      { text: '티원파이팅', emoji: '🔥' }
+    ];
+    var heroPhraseIndex = 0;
+    var heroRotateTimer = null;
+
+    function heroPhraseText() {
+      var p = HERO_PHRASES[heroPhraseIndex];
+      return p.text + ' ' + p.emoji;
+    }
+
+    function startHeroRotation(subEl) {
+      if (heroRotateTimer) clearInterval(heroRotateTimer);
+      if (!subEl) return;
+      heroRotateTimer = setInterval(function () {
+        subEl.classList.add('fade');
+        setTimeout(function () {
+          heroPhraseIndex = (heroPhraseIndex + 1) % HERO_PHRASES.length;
+          subEl.textContent = heroPhraseText();
+          subEl.classList.remove('fade');
+        }, 260);
+      }, 2600);
+    }
+
+    // ---------- hero ----------
+    function renderHero() {
+      var el = document.getElementById('hero-content');
+      var totalSpan = (END - START) / 86400000;
+      var elapsed = Math.min(Math.max((TODAY - START) / 86400000, 0), totalSpan);
+      var pct = totalSpan > 0 ? (elapsed / totalSpan) * 100 : 100;
+
+      var countHtml, subLabel, rotating = false;
+      if (TODAY <= END) {
+        var dDay = Math.ceil((END - TODAY) / 86400000);
+        countHtml = dDay <= 0 ? 'D-DAY' : 'D-' + dDay;
+        subLabel = heroPhraseText();
+        rotating = true;
+      } else {
+        countHtml = '완주!';
+        subLabel = '두 달간 정말 수고했어요';
+      }
+
+      var totalWalk = 0, totalJp = 0;
+      Object.keys(data.days).forEach(function (k) {
+        var v = data.days[k];
+        if (v.walk) totalWalk++;
+        if (v.jp) totalJp++;
+      });
+      var streak = computeWalkStreak();
+
+      el.innerHTML =
+        '<h1 class="hero-count">' + countHtml + '</h1>' +
+        '<p class="hero-sub">' + subLabel + '</p>' +
+        '<div class="timeline">' +
+          '<div class="timeline-track">' +
+            '<div class="timeline-fill" style="width:' + pct + '%"></div>' +
+            '<div class="timeline-dot" style="left:' + pct + '%"></div>' +
+          '</div>' +
+          '<div class="timeline-labels">' +
+            '<span class="tl-start">' + shortLabel(START) + ' 시작</span>' +
+            '<span class="tl-end">' + shortLabel(END) + ' 완주</span>' +
+          '</div>' +
+        '</div>' +
+        '<p class="hero-stats">누적 걷기 <b>' + totalWalk + '일</b> · 일본어 <b>' + totalJp + '회</b></p>' +
+        (streak >= 2 ? '<div class="hero-streak">🔥 ' + streak + '일 연속 걷는 중</div>' : '');
+
+      if (rotating) {
+        startHeroRotation(el.querySelector('.hero-sub'));
+      } else if (heroRotateTimer) {
+        clearInterval(heroRotateTimer);
+        heroRotateTimer = null;
+      }
+    }
+
+    // ---------- weeks ----------
+    function weekStatus(weekDays) {
+      var activeDays = weekDays.filter(inRange);
+      if (activeDays.length === 0) return 'none';
+      var lastActive = activeDays[activeDays.length - 1];
+      if (activeDays[0] > TODAY) return 'upcoming';
+      if (lastActive < TODAY) return 'done';
+      return 'progress';
+    }
+
+    function renderWeeks() {
+      var container = document.getElementById('weeks');
+      container.innerHTML = '';
+      var cursor = mondayOf(START);
+      var lastMonday = mondayOf(END);
+
+      while (cursor <= lastMonday) {
+        var weekDays = [];
+        for (var i = 0; i < 7; i++) weekDays.push(addDays(cursor, i));
+        var activeDays = weekDays.filter(inRange);
+        if (activeDays.length > 0) {
+          container.appendChild(renderWeek(weekDays));
+        }
+        cursor = addDays(cursor, 7);
+      }
+    }
+
+    function renderWeek(weekDays) {
+      var section = document.createElement('section');
+      section.className = 'week';
+
+      var status = weekStatus(weekDays);
+      var info = weekInfoForDate(fmt(weekDays[0]));
+
+      var statusLabel = status === 'upcoming' ? '예정' : (status === 'progress' ? '진행중' : '');
+
+      var head = document.createElement('div');
+      head.className = 'week-head';
+      head.innerHTML =
+        '<span class="week-range">' + shortLabel(weekDays[0]) + ' – ' + shortLabel(weekDays[6]) + '</span>' +
+        '<span class="week-status">' + statusLabel + '</span>';
+      section.appendChild(head);
+
+      var daysRow = document.createElement('div');
+      daysRow.className = 'days';
+      weekDays.forEach(function (d) {
+        daysRow.appendChild(renderDayCard(d));
+      });
+      section.appendChild(daysRow);
+
+      var excludedIdx = [];
+      weekDays.forEach(function (d, i) { if (isExcludedDate(fmt(d))) excludedIdx.push(i); });
+      if (excludedIdx.length > 0) {
+        var line = document.createElement('div');
+        line.className = 'travel-line';
+        for (var ti = 0; ti < 7; ti++) {
+          var seg = document.createElement('span');
+          seg.className = 'tl-seg' + (excludedIdx.indexOf(ti) !== -1 ? ' on' : '');
+          line.appendChild(seg);
+        }
+        var minIdx = Math.min.apply(null, excludedIdx);
+        var maxIdx = Math.max.apply(null, excludedIdx);
+        var caption = document.createElement('div');
+        caption.className = 'travel-caption';
+        caption.style.gridColumn = (minIdx + 1) + ' / ' + (maxIdx + 2);
+        caption.textContent = '✈️';
+        line.appendChild(caption);
+        section.appendChild(line);
+      }
+
+      if (status === 'done' || status === 'progress') {
+        var summary = document.createElement('div');
+        summary.className = 'week-summary';
+        summary.appendChild(makeBadge('걷기', info.walkCount, info.walkTarget, status, 'walk'));
+        if (info.jpTarget > 0) summary.appendChild(makeBadge('일본어', info.jpCount, info.jpTarget, status, 'jp'));
+        section.appendChild(summary);
+      }
+
+      return section;
+    }
+
+    function makeBadge(label, count, target, status, kind) {
+      var span = document.createElement('span');
+      var achieved = status === 'done' && count >= target;
+      var cls = 'badge';
+      if (achieved) cls += ' ok ' + kind;
+      span.className = cls;
+      var text = label + ' ' + count + '/' + target;
+      if (status === 'done') text += achieved ? ' · 달성 🏅' : ' · 아쉬웠어요';
+      span.textContent = text;
+      return span;
+    }
+
+    function renderDayCard(d) {
+      var dateStr = fmt(d);
+      var card = document.createElement('div');
+      card.className = 'day-card';
+      var todayFlag = dateStr === fmt(TODAY);
+      if (todayFlag) card.classList.add('is-today');
+
+      var dateEl = document.createElement('div');
+      dateEl.className = 'day-date';
+      var excluded = isExcludedDate(dateStr);
+      dateEl.innerHTML = '<b>' + d.getDate() + '</b>' + DOW[(d.getDay() + 6) % 7];
+      card.appendChild(dateEl);
+
+      var active = inRange(d);
+      var disabled = !active || isFuture(d);
+      var flags = dayFlags(dateStr);
+      var dow = (d.getDay() + 6) % 7;
+      var isWeekend = dow === 5 || dow === 6;
+      var isOptional = isWeekend || excluded;
+
+      var walkChip = document.createElement('button');
+      walkChip.type = 'button';
+      walkChip.className = 'chip walk' + (isOptional ? ' optional' : '') + (flags.walk ? ' done' : '');
+      walkChip.textContent = '걷기';
+      walkChip.setAttribute('aria-label', shortLabel(d) + ' 걷기 ' + (flags.walk ? '완료' : '미완료') + (excluded ? ' (여행 기간, 쉬어도 돼요)' : isWeekend ? ' (보충)' : ''));
+      walkChip.dataset.date = dateStr;
+      walkChip.dataset.habit = 'walk';
+      walkChip.disabled = disabled;
+      walkChip.addEventListener('click', function () { toggleHabit(dateStr, 'walk'); });
+      card.appendChild(walkChip);
+
+      if (JP_DOW_INDEXES.indexOf(dow) !== -1) {
+        var jpChip = document.createElement('button');
+        jpChip.type = 'button';
+        jpChip.className = 'chip jp' + (isOptional ? ' optional' : '') + (flags.jp ? ' done' : '');
+        jpChip.textContent = '일어';
+        jpChip.setAttribute('aria-label', shortLabel(d) + ' 일본어 ' + (flags.jp ? '완료' : '미완료') + (excluded ? ' (여행 기간, 쉬어도 돼요)' : isWeekend ? ' (주간 복습, 하루만 하면 돼요)' : ''));
+        jpChip.dataset.date = dateStr;
+        jpChip.dataset.habit = 'jp';
+        jpChip.disabled = disabled;
+        jpChip.addEventListener('click', function () { toggleHabit(dateStr, 'jp'); });
+        card.appendChild(jpChip);
+      } else {
+        var spacer = document.createElement('div');
+        spacer.className = 'chip-spacer';
+        card.appendChild(spacer);
+      }
+
+      return card;
+    }
+
+    function renderAll() {
+      renderHero();
+      renderWeeks();
+    }
+
+    renderAll();
+  })();
+  </script>
+</body>
+</html>

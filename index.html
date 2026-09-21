@@ -692,10 +692,28 @@
       if (moveHintEl) moveHintEl.classList.remove('show');
     }
 
+    function applyMoveHighlight() {
+      // toggles the .move-target class on the already-existing day-card
+      // elements WITHOUT rebuilding the grid — a full renderAll() here would
+      // replace the DOM node the finger is still touching mid-gesture, which
+      // silently kills the rest of the touch sequence on iOS.
+      var cards = document.querySelectorAll('.day-card');
+      for (var i = 0; i < cards.length; i++) {
+        var c = cards[i];
+        var ds = c.dataset.date;
+        if (moveMode && ds && weekKeyOf(parseDate(ds)) === moveMode.weekKey) {
+          c.classList.add('move-target');
+        } else {
+          c.classList.remove('move-target');
+          c.classList.remove('drag-hover');
+        }
+      }
+    }
+
     function startMove(dateStr) {
       moveMode = { weekKey: weekKeyOf(parseDate(dateStr)), from: dateStr };
       showMoveHint();
-      renderAll();
+      applyMoveHighlight();
     }
 
     function commitMove(targetDateStr) {
@@ -934,6 +952,7 @@
       var dateStr = fmt(d);
       var card = document.createElement('div');
       card.className = 'day-card';
+      card.dataset.date = dateStr;
       var todayFlag = dateStr === fmt(TODAY);
       if (todayFlag) card.classList.add('is-today');
 
@@ -987,16 +1006,20 @@
 
       if (moveMode && weekKeyOf(d) === moveMode.weekKey) {
         card.classList.add('move-target');
-        card.addEventListener('click', function (e) {
-          e.stopPropagation();
-          e.preventDefault();
-          // ignore the synthetic click that immediately follows a long-press
-          // or drag release (it can land on this same card) — only a real,
-          // separate tap should commit a move via this fallback path.
-          if (Date.now() < suppressClicksUntil) return;
-          commitMove(dateStr);
-        }, true);
       }
+      // attached unconditionally (not just when moveMode is active at creation
+      // time) so this keeps working after startMove() applies the highlight
+      // without a full re-render — see applyMoveHighlight().
+      card.addEventListener('click', function (e) {
+        if (!moveMode || weekKeyOf(d) !== moveMode.weekKey) return;
+        e.stopPropagation();
+        e.preventDefault();
+        // ignore the synthetic click that immediately follows a long-press
+        // or drag release (it can land on this same card) — only a real,
+        // separate tap should commit a move via this fallback path.
+        if (Date.now() < suppressClicksUntil) return;
+        commitMove(dateStr);
+      }, true);
 
       return card;
     }

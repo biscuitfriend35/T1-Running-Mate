@@ -233,6 +233,12 @@
     background: color-mix(in srgb, var(--focus) 12%, transparent);
     cursor: pointer;
   }
+  .day-card.move-target.drag-hover {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+    background: color-mix(in srgb, var(--focus) 28%, transparent);
+    transform: scale(1.04);
+  }
   .travel-line {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -569,17 +575,67 @@
       }
     }
 
-    // ---------- long-press (used only by the 일어 chip, to move that week's JP day) ----------
+    // ---------- long-press + drag (used only by the 일어 chip, to move that week's JP day) ----------
     var LONG_PRESS_MS = 550;
     var pressTimer = null;
-    var longPressFired = false;
+    var suppressClicksUntil = 0; // swallow the synthetic compat click(s) a touch gesture fires
+    var dragActive = false;
+    var dragHoverCard = null;
+
+    function pointFromEvent(e) {
+      if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      if (e.changedTouches && e.changedTouches.length) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+      return { x: e.clientX, y: e.clientY };
+    }
+
+    function clearDragHover() {
+      if (dragHoverCard) { dragHoverCard.classList.remove('drag-hover'); dragHoverCard = null; }
+    }
+
+    function updateDragHover(e) {
+      if (!moveMode) return;
+      var pt = pointFromEvent(e);
+      var el = document.elementFromPoint(pt.x, pt.y);
+      var card = el && el.closest ? el.closest('.day-card') : null;
+      if (card && card.classList.contains('move-target')) {
+        if (dragHoverCard !== card) {
+          clearDragHover();
+          dragHoverCard = card;
+          card.classList.add('drag-hover');
+        }
+      } else {
+        clearDragHover();
+      }
+    }
+
+    function endDrag() {
+      if (!dragActive) return;
+      dragActive = false;
+      document.removeEventListener('touchmove', updateDragHover);
+      document.removeEventListener('touchend', endDrag);
+      document.removeEventListener('mousemove', updateDragHover);
+      document.removeEventListener('mouseup', endDrag);
+      suppressClicksUntil = Date.now() + 500;
+      var target = dragHoverCard;
+      clearDragHover();
+      if (moveMode && target && target.dataset.date) {
+        commitMove(target.dataset.date);
+      }
+      // released without hovering a valid day — leave move mode active so a
+      // plain follow-up tap can still finish (or cancel) it
+    }
+
     function attachLongPress(el, onLongPress) {
       function start() {
-        longPressFired = false;
         pressTimer = setTimeout(function () {
-          longPressFired = true;
+          suppressClicksUntil = Date.now() + 600;
           if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
           onLongPress();
+          dragActive = true;
+          document.addEventListener('touchmove', updateDragHover, { passive: true });
+          document.addEventListener('touchend', endDrag);
+          document.addEventListener('mousemove', updateDragHover);
+          document.addEventListener('mouseup', endDrag);
         }, LONG_PRESS_MS);
       }
       function cancel() {
@@ -596,7 +652,6 @@
 
     // ---------- JP day move mode ----------
     var moveMode = null; // { weekKey, from }
-    var moveModeStartedAt = 0;
     var moveHintEl = null;
 
     function showMoveHint() {
@@ -605,7 +660,7 @@
         moveHintEl.className = 'toast move-hint';
         document.body.appendChild(moveHintEl);
       }
-      moveHintEl.textContent = '이동할 요일을 탭하세요 · 원래 칸을 다시 탭하면 취소돼요';
+      moveHintEl.textContent = '누른 채로 옮길 요일까지 끌어보세요 · 원래 칸에 놓으면 취소돼요';
       requestAnimationFrame(function () { moveHintEl.classList.add('show'); });
     }
     function hideMoveHint() {
@@ -614,7 +669,6 @@
 
     function startMove(dateStr) {
       moveMode = { weekKey: weekKeyOf(parseDate(dateStr)), from: dateStr };
-      moveModeStartedAt = Date.now();
       showMoveHint();
       renderAll();
     }
@@ -879,7 +933,10 @@
       walkChip.dataset.date = dateStr;
       walkChip.dataset.habit = 'walk';
       walkChip.disabled = disabled;
-      walkChip.addEventListener('click', function () { toggleHabit(dateStr, 'walk'); });
+      walkChip.addEventListener('click', function () {
+        if (Date.now() < suppressClicksUntil) return;
+        toggleHabit(dateStr, 'walk');
+      });
       card.appendChild(walkChip);
 
       if (isJpDay(d)) {
@@ -891,7 +948,7 @@
         jpChip.dataset.date = dateStr;
         jpChip.dataset.habit = 'jp';
         jpChip.addEventListener('click', function () {
-          if (longPressFired) { longPressFired = false; return; }
+          if (Date.now() < suppressClicksUntil) return;
           if (disabled) return;
           toggleHabit(dateStr, 'jp');
         });
@@ -908,10 +965,10 @@
         card.addEventListener('click', function (e) {
           e.stopPropagation();
           e.preventDefault();
-          // ignore the synthetic click that immediately follows the long-press
-          // release itself (it lands on this same card, right where the finger
-          // already was) — only real, separate taps should commit a move.
-          if (Date.now() - moveModeStartedAt < 400) return;
+          // ignore the synthetic click that immediately follows a long-press
+          // or drag release (it can land on this same card) — only a real,
+          // separate tap should commit a move via this fallback path.
+          if (Date.now() < suppressClicksUntil) return;
           commitMove(dateStr);
         }, true);
       }

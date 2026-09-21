@@ -277,6 +277,16 @@
   .chip.jp.done { background: var(--jp); border-color: var(--jp); color: #fff; }
   .chip:not(:disabled):not(.chip-disabled):active { transform: scale(0.88); }
   .chip { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .chip.chip-dragging {
+    position: relative;
+    z-index: 30;
+    transition: none;
+    background: var(--jp);
+    border-color: var(--jp);
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+    pointer-events: none; /* let elementFromPoint see the card underneath, not the chip itself */
+  }
   .chip.pop { animation: pop 0.32s ease; }
   @keyframes pop {
     0% { transform: scale(1) rotate(0deg); }
@@ -570,11 +580,13 @@
     }
 
     // ---------- long-press + drag (used only by the 일어 chip, to move that week's JP day) ----------
-    var LONG_PRESS_MS = 550;
+    var LONG_PRESS_MS = 280;
     var pressTimer = null;
     var suppressClicksUntil = 0; // swallow the synthetic compat click(s) a touch gesture fires
     var dragActive = false;
     var dragHoverCard = null;
+    var dragEl = null;      // the actual chip button, visually following the finger
+    var dragStartX = 0;
 
     function pointFromEvent(e) {
       if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -586,9 +598,37 @@
       if (dragHoverCard) { dragHoverCard.classList.remove('drag-hover'); dragHoverCard = null; }
     }
 
-    function updateDragHover(e) {
+    function startDragVisual(el, pt) {
+      dragEl = el;
+      dragStartX = pt.x;
+      dragEl.classList.add('chip-dragging');
+    }
+
+    function updateDragVisual(pt) {
+      if (!dragEl) return;
+      dragEl.style.transform = 'translateX(' + (pt.x - dragStartX) + 'px)';
+    }
+
+    function endDragVisual(snapBack) {
+      if (!dragEl) return;
+      var el = dragEl;
+      dragEl = null;
+      if (snapBack) {
+        el.style.transition = 'transform 0.18s ease';
+        el.style.transform = '';
+        setTimeout(function () {
+          el.style.transition = '';
+          el.classList.remove('chip-dragging');
+        }, 200);
+      } else {
+        // about to be replaced by commitMove()'s re-render anyway
+        el.style.transform = '';
+        el.classList.remove('chip-dragging');
+      }
+    }
+
+    function updateDragHoverAt(pt) {
       if (!moveMode) return;
-      var pt = pointFromEvent(e);
       var el = document.elementFromPoint(pt.x, pt.y);
       var card = el && el.closest ? el.closest('.day-card') : null;
       if (card && isMoveTargetDate(card.dataset.date)) {
@@ -605,7 +645,15 @@
     function onDragTouchMove(e) {
       // once a real drag is underway, stop the page from scrolling under the finger
       if (e.cancelable) e.preventDefault();
-      updateDragHover(e);
+      var pt = pointFromEvent(e);
+      updateDragVisual(pt);
+      updateDragHoverAt(pt);
+    }
+
+    function onDragMouseMove(e) {
+      var pt = pointFromEvent(e);
+      updateDragVisual(pt);
+      updateDragHoverAt(pt);
     }
 
     function endDrag() {
@@ -614,16 +662,19 @@
       document.removeEventListener('touchmove', onDragTouchMove);
       document.removeEventListener('touchend', endDrag);
       document.removeEventListener('touchcancel', endDrag);
-      document.removeEventListener('mousemove', updateDragHover);
+      document.removeEventListener('mousemove', onDragMouseMove);
       document.removeEventListener('mouseup', endDrag);
       suppressClicksUntil = Date.now() + 500;
       var target = dragHoverCard;
       clearDragHover();
+      var committed = false;
       if (moveMode && target && target.dataset.date) {
+        committed = true;
         commitMove(target.dataset.date);
       }
       // released without hovering a valid day — leave move mode active so a
       // plain follow-up tap can still finish (or cancel) it
+      endDragVisual(!committed);
     }
 
     function attachLongPress(el, onLongPress) {
@@ -638,10 +689,11 @@
           if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
           onLongPress();
           dragActive = true;
+          startDragVisual(el, startPt);
           document.addEventListener('touchmove', onDragTouchMove, { passive: false });
           document.addEventListener('touchend', endDrag);
           document.addEventListener('touchcancel', endDrag);
-          document.addEventListener('mousemove', updateDragHover);
+          document.addEventListener('mousemove', onDragMouseMove);
           document.addEventListener('mouseup', endDrag);
         }, LONG_PRESS_MS);
       }

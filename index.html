@@ -227,16 +227,10 @@
     line-height: 1.2;
   }
   .day-date b { display: block; font-size: 0.95rem; color: var(--text); font-weight: 700; }
-  .day-card.move-target {
-    outline: 2px dashed var(--focus);
-    outline-offset: 1px;
-    background: color-mix(in srgb, var(--focus) 12%, transparent);
-    cursor: pointer;
-  }
-  .day-card.move-target.drag-hover {
+  .day-card.drag-hover {
     outline: 2px solid var(--focus);
     outline-offset: 1px;
-    background: color-mix(in srgb, var(--focus) 28%, transparent);
+    background: color-mix(in srgb, var(--focus) 22%, transparent);
     transform: scale(1.04);
   }
   .travel-line {
@@ -597,7 +591,7 @@
       var pt = pointFromEvent(e);
       var el = document.elementFromPoint(pt.x, pt.y);
       var card = el && el.closest ? el.closest('.day-card') : null;
-      if (card && card.classList.contains('move-target')) {
+      if (card && isMoveTargetDate(card.dataset.date)) {
         if (dragHoverCard !== card) {
           clearDragHover();
           dragHoverCard = card;
@@ -677,43 +671,16 @@
 
     // ---------- JP day move mode ----------
     var moveMode = null; // { weekKey, from }
-    var moveHintEl = null;
 
-    function showMoveHint() {
-      if (!moveHintEl) {
-        moveHintEl = document.createElement('div');
-        moveHintEl.className = 'toast move-hint';
-        document.body.appendChild(moveHintEl);
-      }
-      moveHintEl.textContent = '누른 채로 옮길 요일까지 끌어보세요 · 원래 칸에 놓으면 취소돼요';
-      requestAnimationFrame(function () { moveHintEl.classList.add('show'); });
-    }
-    function hideMoveHint() {
-      if (moveHintEl) moveHintEl.classList.remove('show');
-    }
-
-    function applyMoveHighlight() {
-      // toggles the .move-target class on the already-existing day-card
-      // elements WITHOUT rebuilding the grid — a full renderAll() here would
-      // replace the DOM node the finger is still touching mid-gesture, which
-      // silently kills the rest of the touch sequence on iOS.
-      var cards = document.querySelectorAll('.day-card');
-      for (var i = 0; i < cards.length; i++) {
-        var c = cards[i];
-        var ds = c.dataset.date;
-        if (moveMode && ds && weekKeyOf(parseDate(ds)) === moveMode.weekKey) {
-          c.classList.add('move-target');
-        } else {
-          c.classList.remove('move-target');
-          c.classList.remove('drag-hover');
-        }
-      }
+    function isMoveTargetDate(dateStr) {
+      return !!(moveMode && dateStr && weekKeyOf(parseDate(dateStr)) === moveMode.weekKey);
     }
 
     function startMove(dateStr) {
+      // just flips the state on — no full re-render (would kill the touch
+      // sequence mid-gesture on iOS) and no whole-week outline; only the one
+      // cell currently under the finger gets highlighted, via updateDragHover.
       moveMode = { weekKey: weekKeyOf(parseDate(dateStr)), from: dateStr };
-      showMoveHint();
-      applyMoveHighlight();
     }
 
     function commitMove(targetDateStr) {
@@ -735,7 +702,6 @@
       }
       data.updatedAt = Date.now();
       moveMode = null;
-      hideMoveHint();
       saveLocal();
       renderAll();
       persist();
@@ -1004,12 +970,9 @@
         card.appendChild(spacer);
       }
 
-      if (moveMode && weekKeyOf(d) === moveMode.weekKey) {
-        card.classList.add('move-target');
-      }
-      // attached unconditionally (not just when moveMode is active at creation
-      // time) so this keeps working after startMove() applies the highlight
-      // without a full re-render — see applyMoveHighlight().
+      // attached unconditionally (not just when moveMode happens to be active
+      // at creation time) so it keeps working across the whole gesture without
+      // needing a full re-render — see startMove()/isMoveTargetDate().
       card.addEventListener('click', function (e) {
         if (!moveMode || weekKeyOf(d) !== moveMode.weekKey) return;
         e.stopPropagation();

@@ -956,12 +956,17 @@
 
     function makeBadge(label, count, target, status, kind) {
       var span = document.createElement('span');
-      var achieved = status === 'done' && count >= target;
+      // achieved the moment the target is hit — doesn't wait for the week to end
+      var achieved = target > 0 && count >= target;
       var cls = 'badge';
       if (achieved) cls += ' ok ' + kind;
       span.className = cls;
       var text = label + ' ' + count + '/' + target;
-      if (status === 'done') text += achieved ? ' · 달성 🏅' : ' · 아쉬웠어요';
+      if (achieved) {
+        text += ' · 달성 🏅';
+      } else if (status === 'done') {
+        text += ' · 아쉬웠어요';
+      }
       span.textContent = text;
       return span;
     }
